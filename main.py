@@ -4,7 +4,7 @@ from milvus_manager import MilvusManager
 
 def main():
     manager = MilvusManager()
-    question = "内容管理后台的网址是什么"
+    question = "公司可以“即时辞退”员工且不支付经济补偿的，列举其中5种情形。"
     contexts = manager.search(question)
 
     context_text = "\n".join(contexts)
