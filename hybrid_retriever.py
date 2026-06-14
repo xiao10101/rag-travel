@@ -22,8 +22,7 @@ class HybridRetriever:
         self.bm25: BM25Okapi | None = None
         self.chunks: list[dict] = []  # [{"text": ..., "page_num": ...}, ...]
 
-    # ── 索引构建 ──────────────────────────────────────────────
-
+    # 索引构建
     def build_index(self, chunks: list[dict]):
         """构建 BM25 索引并持久化到磁盘
 
@@ -57,8 +56,7 @@ class HybridRetriever:
             self.bm25 = BM25Okapi(tokenized_corpus)
             return True
 
-    # ── 混合检索 ──────────────────────────────────────────────
-
+    # 混合检索
     def search(self, question: str, limit: int = 3) -> list[dict]:
         """执行混合检索，返回 RRF 融合排序后的结果
 
@@ -80,6 +78,7 @@ class HybridRetriever:
             for item in fused
         ]
 
+    # BM25 检索
     def _bm25_search(self, question: str, limit: int) -> list[dict]:
         if self.bm25 is None:
             if not self._load():
