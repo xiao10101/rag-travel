@@ -81,7 +81,8 @@ class MilvusManager:
             page_num = entity.get("metadata", {}).get("page_num", "?")
             contexts.append({
                 "text": entity["text"],
-                "page_num": page_num
+                "page_num": page_num,
+                "distance": item.get("distance", 0.0)
             })
 
         return contexts
