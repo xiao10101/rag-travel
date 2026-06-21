@@ -3,7 +3,7 @@ from http import HTTPStatus
 from dashscope import TextEmbedding
 import dashscope
 
-from config import DASHSCOPE_API_KEY, EMBEDDING_MODEL
+from app.config import DASHSCOPE_API_KEY, EMBEDDING_MODEL
 
 dashscope.api_key = DASHSCOPE_API_KEY
 
@@ -49,11 +49,11 @@ class EmbeddingService:
                     f"Embedding failed: {resp.message}"
                 )
 
-            embeddings = [
-                item["embedding"]
-                for item in resp.output["embeddings"]
+            batch_embeddings = [
+                emb["embedding"]
+                for emb in resp.output["embeddings"]
             ]
 
-            all_embeddings.extend(embeddings)
+            all_embeddings.extend(batch_embeddings)
 
         return all_embeddings

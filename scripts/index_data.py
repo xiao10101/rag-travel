@@ -1,14 +1,28 @@
-from text_splitter import split_pages
-from pdf_loader import load_pdf
-from milvus_manager import MilvusManager
-from hybrid_retriever import HybridRetriever
+"""
+数据索引入口脚本
+
+用法：
+    python scripts/index_data.py
+"""
+
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from app.retrieval.text_splitter import split_pages
+from app.retrieval.pdf_loader import load_pdf
+from app.core.milvus_manager import MilvusManager
+from app.retrieval.hybrid_retriever import HybridRetriever
+from app.config import UPLOADS_DIR
+import os
 
 
 def main():
     manager = MilvusManager()
 
     # 1. 逐页读取 PDF
-    pages = load_pdf("./uploads/docs.pdf")
+    pdf_path = os.path.join(UPLOADS_DIR, "docs.pdf")
+    pages = load_pdf(pdf_path)
 
     # 2. 逐页分块，保留页码
     chunks = split_pages(pages)

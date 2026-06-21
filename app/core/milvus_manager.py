@@ -1,6 +1,6 @@
 from pymilvus import MilvusClient, DataType
-from config import COLLECTION_NAME, MILVUS_URI
-from embedding import EmbeddingService
+from app.config import COLLECTION_NAME, MILVUS_URI
+from app.core.embedding import EmbeddingService
 
 class MilvusManager:
     def __init__(self):
@@ -25,7 +25,8 @@ class MilvusManager:
         
         self.client.create_collection(
             collection_name=self.collection_name,
-            schema=schema
+            schema=schema,
+            consistency_level="Strong"
         )
 
         index_params = self.client.prepare_index_params()
@@ -47,42 +48,41 @@ class MilvusManager:
         if metadatas is None:
             metadatas = [{} for _ in docs]
 
-        data = [
-            {
-                "vector": vectors[i],
-                "text": docs[i],
-                "subject": "history",
-                "metadata": metadatas[i]
-            }
-            for i in range(len(docs))
-        ]
+        data = []
+        for vector, doc, metadata in zip(vectors, docs, metadatas):
+            data.append({
+                "vector": vector,
+                "text": doc,
+                "subject": metadata.get("subject", ""),
+                "metadata": metadata,
+            })
 
-        res = self.client.insert(
+        result = self.client.insert(
             collection_name=self.collection_name,
             data=data
         )
 
-        return res
+        return result
 
-    def search(self, question: str, limit: int = 3):
+    def search(self, question: str, limit: int = 3) -> list[dict]:
         self.client.load_collection(self.collection_name)
         query_vector = EmbeddingService.embed(question)[0]
-        result = self.client.search(
+
+        results = self.client.search(
             collection_name=self.collection_name,
             data=[query_vector],
             limit=limit,
-            output_fields=["text", "subject", "metadata"]
+            output_fields=["text", "metadata"],
         )
 
-        contexts = []
+        if not results or not results[0]:
+            return []
 
-        for item in result[0]:
-            entity = item["entity"]
-            page_num = entity.get("metadata", {}).get("page_num", "?")
-            contexts.append({
-                "text": entity["text"],
-                "page_num": page_num,
-                "distance": item.get("distance", 0.0)
-            })
-
-        return contexts
+        return [
+            {
+                "text": hit["entity"]["text"],
+                "page_num": hit["entity"].get("metadata", {}).get("page_num", 0),
+                "distance": hit["distance"],
+            }
+            for hit in results[0]
+        ]

@@ -1,9 +1,17 @@
+"""
+交互式对话入口脚本
+
+用法：
+    python scripts/run_chat.py
+"""
 
 import sys
 import time
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from llm import LLMService
-from hybrid_retriever import HybridRetriever
+from app.core.llm import LLMService
+from app.retrieval.hybrid_retriever import HybridRetriever
 
 
 def print_thinking(content: str, end: str = ""):

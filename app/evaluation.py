@@ -9,9 +9,9 @@ RAGAS 评估模块
   - 端到端延迟（P50 / P95 / P99）
 
 使用方式：
-  python evaluation.py                    # 评估全部 golden_data
-  python evaluation.py --limit 5          # 仅评估前 5 条（快速验证）
-  python evaluation.py --output result.json  # 结果写入 JSON 文件
+  python scripts/run_eval.py                    # 评估全部 golden_data
+  python scripts/run_eval.py --limit 5          # 仅评估前 5 条（快速验证）
+  python scripts/run_eval.py --output result.json  # 结果写入 JSON 文件
 """
 
 import time
@@ -21,9 +21,9 @@ import warnings
 import numpy as np
 from typing import Optional
 
-from config import DASHSCOPE_API_KEY
-from llm import LLMService
-from hybrid_retriever import HybridRetriever
+from app.config import DASHSCOPE_API_KEY, GOLDEN_DATA_FILE
+from app.core.llm import LLMService
+from app.retrieval.hybrid_retriever import HybridRetriever
 
 # 抑制 RAGAS 旧版导入路径的 deprecation warning（v1.0 前仍可用）
 warnings.filterwarnings("ignore", message=".*ragas.metrics.*deprecated.*")
@@ -155,7 +155,7 @@ def print_results(ragas_scores: dict, latency_stats: dict):
 
 
 def run_evaluation(
-    golden_path: str = "golden_data.json",
+    golden_path: str = GOLDEN_DATA_FILE,
     limit: Optional[int] = None,
     output_path: Optional[str] = None,
 ):
@@ -238,7 +238,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="RAGAS 评估脚本")
     parser.add_argument("--limit", type=int, default=None, help="仅评估前 N 条数据")
     parser.add_argument("--output", type=str, default=None, help="结果输出 JSON 文件路径")
-    parser.add_argument("--golden", type=str, default="golden_data.json", help="golden data 文件路径")
+    parser.add_argument("--golden", type=str, default=GOLDEN_DATA_FILE, help="golden data 文件路径")
     args = parser.parse_args()
 
     run_evaluation(

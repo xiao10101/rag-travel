@@ -2,9 +2,9 @@ import os
 import pickle
 import jieba
 from rank_bm25 import BM25Okapi
-from milvus_manager import MilvusManager
+from app.core.milvus_manager import MilvusManager
+from app.config import BM25_INDEX_FILE
 
-BM25_INDEX_FILE = "bm25_index.pkl"
 RRF_K = 60  # RRF 融合常数
 
 
