@@ -49,9 +49,11 @@ from datasets import Dataset
 from ragas.llms import llm_factory
 from openai import OpenAI
 
-# 默认使用 qwen-turbo 作为评估 LLM（评估只需判断语义，不需要最强模型，速度更快成本更低）
+# 默认使用 qwen3.7-max 作为评估 LLM
+# 注意：answer_relevancy 需要生成反向问题，对 LLM 质量敏感，建议用 qwen3.7-max 以上
+# 如果只评估 faithfulness/context_precision/context_recall，qwen-turbo 足够
 # 可通过 --eval-model 参数覆盖
-EVAL_LLM_MODEL = "qwen-turbo"
+EVAL_LLM_MODEL = "qwen3.7-max"
 
 def _build_evaluator_llm(model: str = EVAL_LLM_MODEL):
     """构建 RAGAS 评估器 LLM"""
