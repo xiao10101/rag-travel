@@ -8,6 +8,9 @@ COLLECTION_NAME = "demo_collection"
 
 EMBEDDING_MODEL = "text-embedding-v2"
 
+RERANK_MODEL = "qwen3-rerank"
+RERANK_TOP_N = 5
+
 # ---- 项目路径 ----
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")

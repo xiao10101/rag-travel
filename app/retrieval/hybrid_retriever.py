@@ -3,6 +3,7 @@ import pickle
 import jieba
 from rank_bm25 import BM25Okapi
 from app.core.milvus_manager import MilvusManager
+from app.core.reranker import Reranker
 from app.config import BM25_INDEX_FILE
 
 RRF_K = 60  # RRF 融合常数
@@ -64,18 +65,21 @@ class HybridRetriever:
             [{"text": str, "page_num": int}, ...]
         """
         # 1. 向量检索（多取一些用于融合）
-        vector_results = self.milvus.search(question, limit=limit * 3)
+        vector_results = self.milvus.search(question, limit=limit * 4)
 
         # 2. BM25 检索
-        bm25_results = self._bm25_search(question, limit=limit * 3)
+        bm25_results = self._bm25_search(question, limit=limit * 4)
 
-        # 3. RRF 融合
-        fused = self._rrf_merge(vector_results, bm25_results, limit)
+        # 3. RRF 融合（保留更多候选用于精排）
+        fused = self._rrf_merge(vector_results, bm25_results, limit * 2)
+
+        # 4. ReRank 精排
+        reranked = Reranker.rerank(question, fused, top_n=limit)
 
         # 返回 window 上下文（Sentence Window 策略），供 LLM 使用
         return [
             {"text": item.get("window", item["text"]), "page_num": item["page_num"]}
-            for item in fused
+            for item in reranked
         ]
 
     # BM25 检索
