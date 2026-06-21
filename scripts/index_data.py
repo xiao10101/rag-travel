@@ -28,9 +28,9 @@ def main():
     chunks = split_pages(pages)
     print("chunk 数量:", len(chunks))
 
-    # 插入 Milvus 向量库（带页码信息）
+    # 插入 Milvus 向量库（带页码和窗口上下文）
     texts = [c["text"] for c in chunks]
-    metadatas = [{"page_num": c["page_num"]} for c in chunks]
+    metadatas = [{"page_num": c["page_num"], "window": c.get("window", c["text"])} for c in chunks]
     result = manager.insert(texts, metadatas)
     print("Milvus 插入成功")
 

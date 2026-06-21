@@ -82,6 +82,7 @@ class MilvusManager:
             {
                 "text": hit["entity"]["text"],
                 "page_num": hit["entity"].get("metadata", {}).get("page_num", 0),
+                "window": hit["entity"].get("metadata", {}).get("window", hit["entity"]["text"]),
                 "distance": hit["distance"],
             }
             for hit in results[0]

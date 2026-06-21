@@ -57,7 +57,7 @@ class HybridRetriever:
             return True
 
     # 混合检索
-    def search(self, question: str, limit: int = 3) -> list[dict]:
+    def search(self, question: str, limit: int = 5) -> list[dict]:
         """执行混合检索，返回 RRF 融合排序后的结果
 
         Returns:
@@ -72,9 +72,9 @@ class HybridRetriever:
         # 3. RRF 融合
         fused = self._rrf_merge(vector_results, bm25_results, limit)
 
-        # 移除 distance 等内部字段，只返回外部需要的内容
+        # 返回 window 上下文（Sentence Window 策略），供 LLM 使用
         return [
-            {"text": item["text"], "page_num": item["page_num"]}
+            {"text": item.get("window", item["text"]), "page_num": item["page_num"]}
             for item in fused
         ]
 
@@ -102,6 +102,7 @@ class HybridRetriever:
             results.append({
                 "text": chunk["text"],
                 "page_num": chunk["page_num"],
+                "window": chunk.get("window", chunk["text"]),
                 "_bm25_score": score,
             })
 

@@ -43,7 +43,55 @@ from ragas.llms import llm_factory
 from openai import OpenAI
 
 _evaluator_llm = llm_factory(
-    "qwen-plus",
+    "qwen3.7-max",
+    client=OpenAI(
+        api_key=DASHSCOPE_API_KEY,
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    ),
+    max_tokens=4096,
+)
+
+# 配置 Embeddings（用于 answer_relevancy 指标）
+# 自定义适配器包装 DashScope 的 OpenAI 兼容接口
+from ragas.embeddings.base import BaseRagasEmbeddings
+
+class DashScopeEmbeddings(BaseRagasEmbeddings):
+    """DashScope Embeddings 适配器"""
+    
+    def __init__(self, model: str, client: OpenAI):
+        self.model = model
+        self.client = client
+    
+    def embed_text(self, text: str) -> list[float]:
+        """嵌入单个文本"""
+        response = self.client.embeddings.create(
+            model=self.model,
+            input=[text]
+        )
+        return response.data[0].embedding
+    
+    def embed_query(self, text: str) -> list[float]:
+        """嵌入查询文本（兼容 LangChain 接口）"""
+        return self.embed_text(text)
+    
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        """嵌入多个文档"""
+        response = self.client.embeddings.create(
+            model=self.model,
+            input=texts
+        )
+        return [item.embedding for item in response.data]
+    
+    async def aembed_query(self, text: str) -> list[float]:
+        """异步嵌入查询文本"""
+        return self.embed_query(text)
+    
+    async def aembed_documents(self, texts: list[str]) -> list[list[float]]:
+        """异步嵌入多个文档"""
+        return self.embed_documents(texts)
+
+_evaluator_embeddings = DashScopeEmbeddings(
+    model="text-embedding-v2",
     client=OpenAI(
         api_key=DASHSCOPE_API_KEY,
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
@@ -199,6 +247,7 @@ def run_evaluation(
         dataset=eval_dataset,
         metrics=[context_precision, context_recall, faithfulness, answer_relevancy],
         llm=_evaluator_llm,
+        embeddings=_evaluator_embeddings,
     )
 
     ragas_scores = ragas_result._repr_dict
